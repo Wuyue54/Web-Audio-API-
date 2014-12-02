@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Wuyue54.github.io by Wuyue54</title>
+ 
+  <style>
+    
+    body {
+    background: black;
+    }
+
+    button {
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    width: 120px;
+    height: 50px;
+    font-family: fantasy;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 25px auto;
+    -webkit-transition: all .25s ease-in-out;
+    transition: all .25s ease-in-out;
+    display: block;
+    
+    }
+
+    button:hover {
+    background: orange;
+    }
+
+    #stopMusic, #playMusic {
+    display: none;
+    }
+
+    #Canvas {
+    margin: 5px;
+    width: 600px;
+    height: 600px;
+    top:50%;
+    left:50%;
+    background:white;
+    }
+
+ </style>
+</head>
+  <body>
+    
+    <canvas id="Canvas"></canvas>  
+    <button id="playMusic" type="button" value="1">Play</button>
+    <button id="stopMusic" type="button" value="2">Stop</button>
+
+
+   
+  </body>
+
+<script type="text/javascript">
+window.requestAnimationFrame || (window.requestAnimationFrame =
+  window.webkitRequestAnimationFrame ||
+  window.mozRequestAnimationFrame    ||
+  window.oRequestAnimationFrame      ||
+  window.msRequestAnimationFrame     ||
+  function(callback, element) {
+    return window.setTimeout(function() {
+      callback(+new Date());
+  }, 1000 / 60);
+});
+
+
+
+
+var audio = {
+  buffer: {}, 
+  file: "http://s.cdpn.io/1715/the_xx_-_intro.mp3",
+  proceed: true,
+  playing: false,
+  source: {}
+};
+
+
+try {
+  window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
+  audio.context = new window.AudioContext();
+  audio.analyser = audio.context.createAnalyser();
+  audio.analyser.fftSize = 256;
+  document.getElementById('playMusic').style.display = "block";
+} catch(e) {
+  audio.proceed = false;
+  document.getElementById('playMusic').style.display = "none"; 
+  alert('Your browser does not support WEB AUDIO API');
+}
+
+if (audio.proceed) {
+  
+  (function() {
+    var buffer = audio.context.createBufferSource();
+  
+  })();
+
+  (function() {
+    var req = new XMLHttpRequest();
+    req.open('GET', audio.file, true);
+    req.responseType = 'arraybuffer';
+    req.onload = function() {
+      audio.context.decodeAudioData(
+        req.response,
+        function(buffer) {
+          audio.buffer = buffer;
+          audio.source = {};
+        },
+        function() {
+          alert('Error decoding audio "' + audio.file + '".');
+        }
+      );
+    };
+    req.send();
+  })();
+}
+
+
+audio.play = function() {
+  audio.playing = true;
+  audio.source = audio.context.createBufferSource();
+  audio.source.buffer = audio.buffer;
+  //audio.source.connect(audio.context.destination);
+
+  audio.source.connect(audio.analyser);
+  audio.analyser.connect(audio.context.destination);
+  
+  audio.source.start(0);
+};
+
+audio.stop = function() {
+  audio.source.stop(0);
+  audio.playing = false;
+  audio.source._startTime = audio.source.currentTime;
+};
+
+var playButton = document.getElementById('playMusic');
+playButton.addEventListener('click', function(e) {
+  stopButton.style.display = "block";
+  playButton.style.display = "none";
+  e.preventDefault();
+  audio.play();
+});
+
+var stopButton = document.getElementById('stopMusic');
+stopButton.addEventListener('click', function(e) {
+  stopButton.style.display = "none";
+  playButton.style.display = "block";
+  e.preventDefault();
+  audio.stop();
+});
+window.onload=function(){
+var canvas=document.getElementById('Canvas'),
+context=canvas.getContext('2d');
+
+ function drawP(){
+    var freqDomain = new Uint8Array(audio.analyser.frequencyBinCount);
+      audio.analyser.getByteFrequencyData(freqDomain);
+  if (audio.playing){
+     for (var i = 0; i < 2*audio.analyser.frequencyBinCount; i++){
+       var value;
+       if (i < audio.analyser.frequencyBinCount) {
+            value = freqDomain[i] /5;
+          } else {
+            value = freqDomain[2 * audio.analyser.frequencyBinCount - i - 1] / 55;
+          }
+       context.strokeStyle='#00ee00';
+       context.fillStyle='#000ee0'; context.fillRect(i*18,0,5,value);
+     }
+  }
+}
+
+  
+  (function drawFrame(){
+ window.requestAnimationFrame(drawFrame,canvas);
+ context.clearRect(0,0,canvas.width,canvas.height);  
+ //drawScreen();
+ drawP();
+// function drawScreen(){
+//context.beginPath();
+ //context.strokeStyle='#00ee00';
+// context.fillStyle='#000ee0';
+// context.lineWidth=2;
+ //context.fillRect(100,100,400,50);
+
+//}
+    
+
+}());
+  
+} 
+
+
+
+</script>
+</html>
