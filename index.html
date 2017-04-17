@@ -3,7 +3,6 @@
 <head>
  <meta charset="UTF-8">
  <title>webAudio</title>
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
  <style type="text/css">
    body,html {
      background: black;
@@ -12,11 +11,12 @@
    }
 
    button {
+     display: block;
      background: transparent;
      cursor: pointer;
      border: 1px solid #67B5E2;
      color:#67b5e2;
-     border-radius: 10px;
+     border-radius: 25px;
      width: 120px;
      height: 50px;
      font-size: 20px;
@@ -24,16 +24,13 @@
      margin: 25px auto;
      -webkit-transition: all .25s ease-in-out;
      transition: all .25s ease-in-out;
-     display: block;
    }
+
    button:hover {
      background: #67B5E2;
      color:#fff;
    }
 
-   #stopMusic, #playMusic {
-     display: none;
-   }
    #Canvas {
      width: 100%;
      height: 600px;
@@ -44,232 +41,7 @@
 </head>
 <body>
   <canvas id="Canvas"></canvas>  
-  <button id="playMusic" type="button" value="1">Play</button>
-  <button id="stopMusic" type="button" value="2">Stop</button>
+  <button id="btn">Play</button>
 </body>
-<script type="text/javascript">
-  window.requestAnimationFrame || (window.requestAnimationFrame =
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame    ||
-    window.oRequestAnimationFrame      ||
-    window.msRequestAnimationFrame     ||
-    function(callback, element) {
-      return window.setTimeout(function() {
-        callback(+new Date());
-      }, 1000 / 60);
-    });
-
-  var audio = {
-    buffer: {}, 
-    file:"http://s.cdpn.io/1715/the_xx_-_intro.mp3",
-    proceed: true,
-    playing: false,
-    source: {}
-  };
-
-  try {
-    window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
-    audio.context = new window.AudioContext();
-    audio.analyser = audio.context.createAnalyser();
-    audio.analyser.fftSize = 256;
-    document.getElementById('playMusic').style.display = "block";
-  } catch(e) {
-    audio.proceed = false;
-    document.getElementById('playMusic').style.display = "none"; 
-    alert('Your browser does not support WEB AUDIO API');
-  }
-
-  if(audio.proceed) {
-    (function() {
-      var buffer = audio.context.createBufferSource();
-    })();
-    (function() {
-      var req = new XMLHttpRequest();
-      req.open('GET', audio.file, true);
-      req.responseType = 'arraybuffer';
-      req.onload = function() {
-        audio.context.decodeAudioData(
-          req.response,
-          function(buffer) {
-            audio.buffer = buffer;
-            audio.source = {};
-          },
-          function() {
-            alert('Error decoding audio "' + audio.file + '".');
-          }
-          );
-      };
-      req.send();
-    })();
-  }
-
-
-  audio.play = function() {
-    audio.playing = true;
-    audio.source = audio.context.createBufferSource();
-    audio.source.buffer = audio.buffer;
-    //audio.source.connect(audio.context.destination);
-    audio.source.connect(audio.analyser);
-    audio.analyser.connect(audio.context.destination); 
-    audio.source.start(0);
-  };
-
-  audio.stop = function() {
-    audio.source.stop(0);
-    audio.playing = false;
-    audio.source._startTime = audio.source.currentTime;
-  };
-
-  var playButton = document.getElementById('playMusic');
-  playButton.addEventListener('click', function(e) {
-    stopButton.style.display = "block";
-    playButton.style.display = "none";
-    e.preventDefault();
-    audio.play();
-  });
-
-  var stopButton = document.getElementById('stopMusic');
-  stopButton.addEventListener('click', function(e) {
-    stopButton.style.display = "none";
-    playButton.style.display = "block";
-    e.preventDefault();
-    audio.stop();
-  });
-
-
-  window.onload=function(){
-    var  canvas=document.getElementById('Canvas'),
-    context=canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    var width=canvas.width,
-    height=canvas.height;
-    // var COLORS = ['#69D2E7', '#1B676B', '#BEF202', '#EBE54D', '#00CDAC', '#1693A5', '#F9D423', '#FF4E50', '#E7204E', '#0CCABA', '#FF006F'];
-
-    function Particle(){
-      this.x=Math.random() * width;
-      this.y=Math.random() * height;
-      this.v=Math.random()*0.1+0.3;
-      this.angle = Math.random()*360;
-      var a=Math.random();
-      // this.color=COLORS[Math.floor(Math.random()*11)];
-      var r = 33;
-      var g = Math.round(Math.random() * 33);
-      var b = Math.round(Math.random() * 255);
-      this.rgba = "rgba("+r+", "+g+", "+b+", "+a+")";
-    this.life=Math.random()*20;
-    this.size=3;
-    this.update = function(){
-      this.x=this.x+this.v*Math.cos(this.angle*Math.PI/180);
-      this.y=this.y+this.v*Math.sin(this.angle*Math.PI/180);
-      // if(this.x<0){
-      //   this.x=width;
-      // }
-      // if(this.x>width){
-      //   this.x=0;
-      // }
-      // if(this.y<0){
-      //   this.y=height;
-      // }
-      // if(this.y>height){
-      //   this.y=0;
-      // }
-      if(this.x<0||this.x>width||this.y<0||this.y>height){
-        this.reset();
-      }
-    }
-    this.draw = function(_value){
-      context.beginPath();
-      context.fillStyle = this.rgba;
-      context.strokeStyle=this.rgba;
-      context.arc(this.x,this.y,this.size*_value,0,2*Math.PI);
-      context.closePath();
-      context.fill();
-      // context.stroke();
-    }
-    this.reset= function(){
-      this.x=Math.random() * width;
-      this.y=Math.random() * height;
-      this.angle = Math.random()*360;
-      
-      // this.color=COLORS[Math.floor(Math.random()*11)];
-      this.size=3;
-      this.life=Math.random()*20;
-      var r = 33;
-      var g = Math.round(Math.random() * 33);
-      var b = Math.round(Math.random() * 255);
-      var a=Math.random();
-      this.rgba = "rgba("+r+", "+g+", "+b+", "+a+")";
-    }
-  }
-
-  var num=audio.analyser.frequencyBinCount;
-  var P=[];
-
-  for(var i=0;i<num;i++){
-    P.push(new Particle);
-  }
-
-  function draw(){
-  for(i=0;i<P.length;i++){
-   // var par=P[i];
-   // par.update();   
-   // par.draw();
- }
-}
-
-function drawP(){
-  var freqDomain = new Uint8Array(audio.analyser.frequencyBinCount);
-  audio.analyser.getByteFrequencyData(freqDomain);
-  var value=1;
-  if (audio.playing){
-    for (var i = 0; i < audio.analyser.frequencyBinCount; i++){
-       if (i < audio.analyser.frequencyBinCount) {
-          value = freqDomain[i] /5;
-          if(value==0){
-            VALUE=1;
-          }else{
-            VALUE=value/2;
-          }
-        } 
-        var par = P[i];
-        par.update();
-        par.draw(VALUE);
-        context.save();
-        var a=Math.random()+0.5;
-        var r = 33;
-        var g = Math.round(Math.random() * 33);
-        var b = Math.round(Math.random() * 255);
-        var Rrgba = "rgba("+r+", "+g+", "+b+", "+a+")";
-        context.fillStyle=Rrgba; 
-        context.translate(width/2,-height/3);
-        context.rotate(i*Math.PI/180);
-        context.fillRect(i*15,height-value*15,1,height);
-        context.restore();
-        context.save();
-        context.fillStyle=Rrgba; 
-        context.translate(width/2,-height/3);
-        context.rotate(-i*Math.PI/180);
-        context.fillRect(-i*15,height-value*15,1,height);
-        context.restore();
-    }
-  }
-}
-
-
-(function drawFrame(){
- window.requestAnimationFrame(drawFrame,canvas);
- context.clearRect(0,0,canvas.width,canvas.height);
- // context.globalCompositeOperation = 'destination-out';
-    context.globalCompositeOperation = 'lighter';
-    context.fillStyle = 'rgba(0,0,0,1)';
-    context.fillRect(0,0,width,height);  
-
- drawP();
-
-}());
-
-} 
-
-</script>
+<script src="./script.js" type="text/javascript"></script>
 </html>
