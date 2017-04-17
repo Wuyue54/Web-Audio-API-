@@ -21,6 +21,7 @@
 
   var play = false;
   var btn = document.getElementById('btn');
+  btn.style.left = Math.floor(window.innerWidth - btn.offsetWidth) /2 +"px";
 
   try {
     window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
